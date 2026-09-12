@@ -45,20 +45,26 @@ con fixtures.** `npm run check:providers` sale con código 1 en ese caso.
 
 ---
 
-## Requisitos
+## Ejecutar en tu Mac
 
-- Node.js **20.9+** (verificado con **24.19.0**) y npm (verificado con **11.17.0**).
-- Para la modalidad real: una clave de Gemini API y un servicio Tiger Data con Timescale.
-
-## Instalación
+Requiere **Node 24** (incluye `.nvmrc`). Si tu Node es anterior, puedes usar este comando sin cambiar la instalación global:
 
 ```bash
-npm install
+cd /Users/sebaschairez/Downloads/Prototipo
+npm exec --yes --package=node@24 -- npm run dev
 ```
 
-Versiones fijadas en `package-lock.json`. Las principales: Next.js 16.3.5, React 19.3.0,
-TypeScript 5.9.3, Zod 4.6.2, `pg` 8.23.0, `@google/genai` 2.22.0, Vitest 5.0.0,
-Playwright 1.63.0, Tailwind CSS 4.3.3.
+Abrir http://localhost:3210. Detener con Ctrl+C. Para una copia nueva, instalar primero con Node 24: `npm exec --yes --package=node@24 -- npm ci`. No copiar `node_modules` entre equipos.
+
+Con Node 24 ya activo, bastan `npm ci` y `npm run dev`. La configuración privada existente en `.env.local` se conserva.
+
+## Rediseño móvil — septiembre 2026
+
+Pantalla compacta, lenguaje sencillo y un panel abierto a la vez. El estado de caja permanece visible; Gemini decide selección/orden/énfasis de paneles. Un panel cerrado mantiene su título; abrir planes muestra costos y condiciones. Los detalles de conexiones se consultan al final. Volver reactiva también el escenario del servidor, y el historial muestra los faltantes antes/después.
+
+Colores y fuente Optimist tomados del sitio de Capital One; procedencia y condiciones de distribución documentadas en `design/CAPITAL_ONE.md`. Se identifica como prototipo, no servicio oficial.
+
+Verificación de este rediseño usa fixtures: no vuelve a acreditar los proveedores reales descritos en la sección histórica anterior.
 
 ## Variables de entorno
 
@@ -116,7 +122,7 @@ npm run start      # también en http://localhost:3210
 ## Pruebas
 
 ```bash
-npm test              # 137 pruebas de dominio, contratos y recorrido (Vitest)
+npm test              # 157 pruebas de dominio, contratos y recorrido (Vitest)
 npm run test:e2e      # recorrido de interfaz con Playwright (build propio en :3211)
 npm run typecheck     # tsc --noEmit
 ```
@@ -171,7 +177,7 @@ npm run demo:walkthrough    # recorre las tres situaciones por la API contra el 
   resultado vigente; una composición de un resultado anterior se descarta.
 - **Reglas que el servidor impone** aunque el modelo las omita: si hay riesgo, resumen de
   riesgo; si hay planes, comparación con sus condiciones; si no hay planes, bloqueos y
-  ningún comparador vacío. La interfaz lista los ajustes aplicados.
+  ningún comparador vacío. Los ajustes se conservan en la respuesta validada. El estado financiero se muestra fuera de la composición.
 - **Dinero en centavos enteros.** Redondeo half-up documentado, puntos base enteros.
 - **Idempotencia y concurrencia.** Clave de operación global; confirmar dos veces no
   duplica el evento. Una propuesta sobre una revisión vieja devuelve 409.
@@ -203,3 +209,7 @@ registradas.
 **No incluye** (y no debe añadirse): banca o Nessie, crédito nuevo, pagos reales,
 negociación automática, WhatsApp, voz, múltiples negocios, modelos predictivos,
 probabilidades de cobro inventadas, pantallas con código arbitrario ni una red de agentes.
+
+### Verificación del rediseño
+
+TypeScript y 157 pruebas unitarias correctas. Build y recorrido Playwright correctos en móvil 390×844 y revisión de desbordamiento a 1440 px: ambigüedad sin mutación, confirmación, condiciones, rechazo, Volver sincronizado, sin solución e historial antes/después. Capturas revisadas visualmente. Esta ronda no ejecutó llamadas reales de Gemini ni modificó Tiger Data; las pruebas usan memoria y composición local explícitas.

@@ -25,7 +25,7 @@ export default defineConfig({
   webServer: {
     // Build propio en `.next-e2e`: Next no admite dos servidores de desarrollo
     // en la misma carpeta, y asi el recorrido corre sin cerrar la demo abierta.
-    command: 'npx next build && npx next start -p ' + String(PORT),
+    command: 'node node_modules/next/dist/bin/next build && node node_modules/next/dist/bin/next start -p ' + String(PORT),
     url: 'http://localhost:' + String(PORT),
     reuseExistingServer: false,
     timeout: 240_000,
