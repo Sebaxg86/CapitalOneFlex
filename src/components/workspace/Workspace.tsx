@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ApiError, ComposedView, Focus, MutationResponse, WorkspaceState } from '@/lib/contracts';
+import type { ApiError, BeforeAfter, ComposedView, Focus, MutationResponse, WorkspaceState } from '@/lib/contracts';
 import { formatCents } from '@/domain/money';
 import { TEXTS } from '@/lib/texts';
 import type { HistoryEntry } from '@/components/blocks/History';
@@ -17,8 +17,7 @@ import MessageComposer from './MessageComposer';
  *   descarta EN SILENCIO: es una respuesta tardía de una petición anterior.
  * - Redimensionar la ventana no dispara ninguna llamada: no hay listeners de
  *   `resize` ni efectos que dependan del tamaño de la ventana.
- * - "Volver" deshace el último cambio de enfoque o de escenario sin pedir nada
- *   al servidor: restaura el estado que ya se tenía.
+ * - "Volver" deshace el último cambio de enfoque o de escenario sin borrar el historial: reactiva el escenario del servidor y restaura el enfoque.
  */
 export interface WorkspaceProps {
   initialState: WorkspaceState;
@@ -84,6 +83,8 @@ export default function Workspace({ initialState }: WorkspaceProps) {
   const [busy, setBusy] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
+  const [beforeAfter, setBeforeAfter] = useState<BeforeAfter[]>([]);
+  const historySeq = useRef(0);
   const [rejectingOptionId, setRejectingOptionId] = useState<string | null>(null);
 
   // El estado vigente, accesible desde callbacks asíncronos sin recrearlos.
@@ -93,13 +94,18 @@ export default function Workspace({ initialState }: WorkspaceProps) {
   const composeSeqRef = useRef(0);
 
   const cargarHistorial = useCallback(async (scenarioId: string) => {
+    const seq = ++historySeq.current;
+    setHistoryEntries([]); setBeforeAfter([]);
     try {
       const respuesta = await fetch(
         `/api/history?scenarioId=${encodeURIComponent(scenarioId)}`,
         { headers: { Accept: 'application/json' } },
       );
       if (!respuesta.ok) return;
-      setHistoryEntries(parseHistory(await respuesta.json()));
+      const payload = await respuesta.json();
+      if (seq !== historySeq.current) return;
+      setHistoryEntries(parseHistory(payload));
+      setBeforeAfter(payload.beforeAfter ?? []);
     } catch {
       // El historial es informativo: si no responde, se muestra vacío y honesto.
     }
@@ -159,15 +165,21 @@ export default function Workspace({ initialState }: WorkspaceProps) {
     }
   }
 
-  function volver() {
-    if (pila.length === 0) return;
-    const anterior = pila[pila.length - 1];
-    // Cualquier composición en vuelo deja de ser relevante.
+  async function volver() {
+    if (pila.length === 0 || busy) return;
+    const previous = pila[pila.length - 1];
     composeSeqRef.current += 1;
-    setState(anterior.state);
-    setFocus(anterior.focus);
-    setStatusMessage(null);
-    setPila((previa) => previa.slice(0, -1));
+    setBusy(true);
+    try {
+      const response = await fetch(`/api/scenarios/${encodeURIComponent(previous.state.scenario.id)}/activate`, {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({focus: previous.focus}),
+      });
+      if (!response.ok) throw new Error('No se pudo volver. Inténtalo otra vez.');
+      const payload = await response.json() as MutationResponse;
+      aplicarEstado(payload.state, 'Volviste al escenario anterior.');
+      setPila(old=>old.slice(0,-1));
+    } catch { setStatusMessage('No se pudo volver. Tu escenario sigue igual.'); }
+    finally { setBusy(false); }
   }
 
   async function rechazarAccion(optionId: string) {
@@ -263,6 +275,7 @@ export default function Workspace({ initialState }: WorkspaceProps) {
         result={state.result}
         enforcement={state.view.enforcement}
         historyEntries={historyEntries}
+        beforeAfter={beforeAfter}
         onRejectAction={(optionId) => void rechazarAccion(optionId)}
         rejectingOptionId={rejectingOptionId}
         busy={busy}

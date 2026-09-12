@@ -102,14 +102,6 @@ export default function MessageComposer({
 
   return (
     <div className="space-y-4">
-      {/* Primer uso: sin esta línea el usuario no sabe por dónde empezar. */}
-      {mensaje.trim() === '' && propuesta === null && aclaracion === null && error === null ? (
-        <p className="text-cuerpo text-tinta-suave">
-          <span className="font-semibold text-tinta">{TEXTS.shell.bienvenidaTitulo}</span>{' '}
-          {TEXTS.shell.bienvenidaCuerpo}
-        </p>
-      ) : null}
-
       <div>
         <label htmlFor="mensaje-cliente" className="text-cuerpo-sm font-semibold">
           {TEXTS.redactor.etiquetaTextarea}
@@ -118,7 +110,7 @@ export default function MessageComposer({
           id="mensaje-cliente"
           value={mensaje}
           onChange={(event) => setMensaje(event.target.value)}
-          rows={3}
+          rows={2}
           placeholder={TEXTS.redactor.marcador}
           disabled={deshabilitado}
           className="campo mt-2 disabled:opacity-60"
@@ -130,7 +122,7 @@ export default function MessageComposer({
           type="button"
           onClick={interpretar}
           disabled={deshabilitado}
-          className="boton-principal"
+          className="boton-principal w-full sm:w-auto"
         >
           {enVuelo ? TEXTS.redactor.interpretando : TEXTS.redactor.interpretar}
         </button>
@@ -149,7 +141,7 @@ export default function MessageComposer({
         ) : null}
 
         {/* Ejemplos del fixture, discretos y rotulados. */}
-        <span className="ml-auto flex flex-wrap items-center gap-2 text-pie text-tinta-tenue">
+        <details className="text-sm text-tinta-tenue"><summary>Probar con un ejemplo</summary><div className="mt-2 flex flex-wrap gap-2">
           {TEXTS.redactor.ejemplosAyuda}
           <button
             type="button"
@@ -167,7 +159,7 @@ export default function MessageComposer({
           >
             {TEXTS.redactor.ejemploAmbiguo}
           </button>
-        </span>
+        </div></details>
       </div>
 
       {/*

@@ -11,6 +11,7 @@ import {
   type ViewSpec,
   type ViewSpecSection,
 } from '@/server/ai/viewspec';
+import type { BeforeAfter } from '@/lib/contracts';
 import { TEXTS } from '@/lib/texts';
 import RiskSummary from '@/components/blocks/RiskSummary';
 import CashCalendar from '@/components/blocks/CashCalendar';
@@ -19,26 +20,9 @@ import PlanComparison from '@/components/blocks/PlanComparison';
 import Constraints from '@/components/blocks/Constraints';
 import History, { type HistoryEntry } from '@/components/blocks/History';
 
-/**
- * Renderiza la composición validada.
- *
- * GRAMÁTICA ESPACIAL. El modelo decide selección, orden y énfasis; el renderer
- * aplica una gramática pública y determinista, igual para cualquier permutación
- * de los seis componentes:
- *
- * - Las secciones se recorren EN EL ORDEN recibido. Nunca se reordenan por
- *   énfasis: protagonismo no es lo mismo que precedencia. Un `high` al final
- *   se queda al final.
- * - `high` abre fila y ocupa el ancho completo.
- * - `normal` y `low` comparten fila solo si son consecutivos y ambos admiten
- *   media anchura. Nunca se busca un bloque posterior para rellenar un hueco.
- * - Tres componentes piden ancho completo siempre, con cualquier énfasis,
- *   porque llevan tabla o comparación en columnas: el comparador de planes, el
- *   calendario y el historial. El énfasis sigue controlando su tratamiento.
- * - En móvil, una sola columna en el mismo orden.
- *
- * Defensa en profundidad: aunque el servidor ya valida el catálogo cerrado,
- * aquí se vuelve a filtrar. Un tipo desconocido no se renderiza.
+/** Vista móvil: conserva el orden del agente y abre inicialmente su panel de
+ * mayor énfasis. El estado financiero vive en el shell, sin repetirse aquí.
+ * Las utilidades de agrupación se conservan para composiciones alternativas.
  */
 export interface SectionRendererProps {
   spec: ViewSpec;
@@ -46,6 +30,7 @@ export interface SectionRendererProps {
   /** Comprobaciones que impuso el servidor sobre la propuesta del modelo. */
   enforcement?: string[];
   historyEntries?: HistoryEntry[];
+  beforeAfter?: BeforeAfter[];
   onRejectAction?: (optionId: string) => void;
   rejectingOptionId?: string | null;
   busy?: boolean;
@@ -177,7 +162,7 @@ function renderBlock(
     case 'constraints':
       return <Constraints {...comun} />;
     case 'history':
-      return <History {...comun} entries={historyEntries} />;
+      return <History {...comun} entries={historyEntries} beforeAfter={props.beforeAfter} />;
     default:
       return null;
   }
@@ -191,115 +176,40 @@ function renderBlock(
  * Lo que NUNCA se pliega (faltante, inviabilidad, condiciones pendientes de un
  * plan, costo de un adelanto) lo garantiza cada bloque en su propia síntesis.
  */
-function Seccion({
-  section,
-  props,
-  abiertaInicial,
-}: {
-  section: ViewSpecSection;
-  props: SectionRendererProps;
-  abiertaInicial: boolean;
+function Seccion({ section, props, open, onToggle }: {
+  section: ViewSpecSection; props: SectionRendererProps; open: boolean; onToggle: () => void;
 }) {
-  const { result } = props;
-  const [abierta, setAbierta] = useState(abiertaInicial);
-  const estilo = ESTILOS[section.emphasis];
   const id = `seccion-${section.type}`;
-  const titulo = section.title
-    ? resolveFactTokens(section.title, result)
-    : COMPONENT_LABELS[section.type];
-  const nota = section.note ? resolveFactTokens(section.note, result) : null;
-
-  return (
-    <section
-      data-seccion={section.type}
-      data-enfasis={section.emphasis}
-      data-abierta={abierta ? 'si' : 'no'}
-      aria-labelledby={id}
-      className={estilo.contenedor}
-    >
-      <h2 id={id} className={estilo.titulo}>
-        {titulo}
-      </h2>
-      {nota ? <p className={`mt-1 ${estilo.nota}`}>{nota}</p> : null}
-
-      <div className="mt-4">{renderBlock(section.type, section, props, 'sintesis')}</div>
-
-      <button
-        type="button"
-        aria-expanded={abierta}
-        aria-controls={`${id}-detalle`}
-        onClick={() => setAbierta((previo) => !previo)}
-        className="mt-4 flex items-center gap-1.5 text-cuerpo-sm font-semibold text-acento hover:text-acento-fuerte"
-      >
-        <span aria-hidden="true">{abierta ? '▾' : '▸'}</span>
-        {abierta ? TEXTS.renderer.ocultarDetalle : TEXTS.renderer.verDetalle}
+  const proposedTitle = section.title ? resolveFactTokens(section.title, props.result) : '';
+  const title = proposedTitle && proposedTitle.length <= 55 ? proposedTitle : COMPONENT_LABELS[section.type];
+  return <section data-seccion={section.type} data-enfasis={section.emphasis} data-abierta={open ? 'si' : 'no'} className="tarjeta overflow-hidden">
+    <h2>
+      <button aria-expanded={open} aria-controls={id} onClick={onToggle} className="flex w-full items-center justify-between gap-3 p-4 text-left text-lg font-semibold text-acento-profundo">
+        {title}<span aria-hidden="true">{open ? '−' : '+'}</span>
       </button>
+    </h2>
+    <div id={id} hidden={!open} className="px-4 pb-4">
+      {renderBlock(section.type, section, props, 'sintesis')}
+      <details className="mt-4 text-sm text-tinta-suave">
+        <summary>Ver cómo se calcula</summary>
+        <div className="mt-3 overflow-x-auto">{renderBlock(section.type, section, props, 'detalle')}</div>
+      </details>
+    </div>
+  </section>;
+}
 
-      <div id={`${id}-detalle`} hidden={!abierta} className="mt-4 border-t border-borde pt-4">
-        {renderBlock(section.type, section, props, 'detalle')}
-      </div>
-    </section>
-  );
+function Composicion({props}: {props: SectionRendererProps}) {
+  // El estado financiero se mantiene siempre visible en el shell. No repetirlo aquí.
+  const seen = new Set<string>();
+  const sections = props.spec.sections.filter(s => { if (!CATALOGO.has(s.type) || seen.has(s.type)) return false; seen.add(s.type); return true; }).filter(s => s.type !== 'risk_summary' && (s.type !== 'plan_comparison' || props.result.plans.length > 0));
+  const initial = indiceAbiertoInicial(sections);
+  const [active, setActive] = useState<string | null>(sections[initial]?.type ?? null);
+  return <div className="space-y-3">
+    {sections.map(section => <Seccion key={section.type} section={section} props={props} open={active === section.type} onToggle={()=>setActive(active === section.type ? null : section.type)}/>)}
+  </div>;
 }
 
 export default function SectionRenderer(props: SectionRendererProps) {
-  const { spec, result, enforcement } = props;
-  const permitidos = new Set(selectBlocksForSpec(spec));
-  const pintados = new Set<ComponentType>();
-
-  const secciones = (spec?.sections ?? []).filter((section) => {
-    if (!permitidos.has(section.type) || pintados.has(section.type)) return false;
-    // El comparador vacío no se pinta: una tarjeta sin planes engaña.
-    if (section.type === 'plan_comparison' && result.plans.length === 0) return false;
-    pintados.add(section.type);
-    return true;
-  });
-
-  const filas = agruparEnFilas(secciones);
-  const abiertaInicial = indiceAbiertoInicial(secciones);
-  // Los despliegues se conservan mientras sea la misma composición del mismo
-  // resultado; una composición nueva vuelve a aplicar la regla desde cero.
-  const composicionId = `${spec.resultId}|${spec.focus}|${secciones.map((s) => s.type + s.emphasis).join(',')}`;
-
-  return (
-    <div className="space-y-4">
-      {secciones.length === 0 ? (
-        <p className="tarjeta p-5 text-cuerpo-sm text-tinta-suave">{TEXTS.renderer.vacio}</p>
-      ) : (
-        filas.map((fila) => (
-          <div
-            key={fila.map((s) => s.type).join('|')}
-            className={
-              fila.length === 2
-                ? 'grid gap-4 lg:grid-cols-2 lg:items-start'
-                : 'grid gap-4 grid-cols-1'
-            }
-          >
-            {fila.map((section) => (
-              <Seccion
-                key={`${composicionId}|${section.type}`}
-                section={section}
-                props={props}
-                abiertaInicial={secciones.indexOf(section) === abiertaInicial}
-              />
-            ))}
-          </div>
-        ))
-      )}
-
-      {enforcement && enforcement.length > 0 ? (
-        <details className="rounded-tarjeta border border-borde bg-superficie-tenue px-4 py-3">
-          <summary className="cursor-pointer text-cuerpo-sm font-semibold text-tinta-suave">
-            {TEXTS.renderer.ajustesTitulo}
-          </summary>
-          <p className="mt-2 text-pie text-tinta-tenue">{TEXTS.renderer.ajustesAyuda}</p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-pie text-tinta-tenue">
-            {enforcement.map((linea) => (
-              <li key={linea}>{linea}</li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
-    </div>
-  );
+  const key = props.spec.resultId + props.spec.focus + JSON.stringify(props.spec.sections);
+  return <Composicion key={key} props={props}/>;
 }

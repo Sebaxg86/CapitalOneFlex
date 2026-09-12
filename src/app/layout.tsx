@@ -1,17 +1,16 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import { TEXTS } from '@/lib/texts';
 import './globals.css';
 
-/**
- * Inter es la tipografía del sistema de diseño. Se sirve desde el propio
- * proyecto: no hay peticiones a terceros en tiempo de ejecución.
- */
-const inter = Inter({
-  subsets: ['latin'],
+const optimist = localFont({
+  src: [
+    { path: '../../public/fonts/Optimist-Rg.woff2', weight: '400', style: 'normal' },
+    { path: '../../public/fonts/Optimist-SBd.woff2', weight: '600', style: 'normal' },
+  ],
   display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-optimist',
 });
 
 export const metadata: Metadata = {
@@ -21,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" className={inter.variable}>
+    <html lang="es" className={optimist.variable}>
       <body className="min-h-screen bg-lienzo text-tinta antialiased">{children}</body>
     </html>
   );

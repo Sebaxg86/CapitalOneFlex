@@ -15,13 +15,13 @@
 @theme {
   /* --- Superficies ------------------------------------------------------ */
   /** Lienzo de la aplicación. */
-  --color-lienzo: #fcf9f8;
+  --color-lienzo: #f4f6f8;
   /** Tarjetas y paneles sobre el lienzo. */
   --color-superficie: #ffffff;
   /** Bloques secundarios dentro de una tarjeta. */
-  --color-superficie-suave: #f0edec;
+  --color-superficie-suave: #eef3f6;
   /** Franja tenue para cabeceras de tabla y zonas de apoyo. */
-  --color-superficie-tenue: #f6f3f2;
+  --color-superficie-tenue: #f4f4f4;
   /** Superficie invertida para barras y pies. */
   --color-superficie-oscura: #3d3d3d;
 
@@ -36,17 +36,17 @@
   --color-borde-fuerte: #b0b0b0;
 
   /* --- Acento: acciones, enlaces y estado activo ------------------------- */
-  --color-acento: #0276b1;
-  --color-acento-fuerte: #015b8a;
-  --color-acento-profundo: #0f4b75;
+  --color-acento: #0070a8;
+  --color-acento-fuerte: #014e74;
+  --color-acento-profundo: #013d5b;
   --color-acento-suave: #eff6ff;
   --color-acento-borde: #cce5ff;
 
   /* --- Estados ----------------------------------------------------------- */
   /* Riesgo e inviabilidad: el rojo del sistema. */
-  --color-alerta: #ba1a1a;
+  --color-alerta: #cc2427;
   --color-alerta-texto: #93000a;
-  --color-alerta-suave: #ffdad6;
+  --color-alerta-suave: #fff1f1;
 
   /*
    * Extensión documentada 1 de 2. Un producto de riesgo de caja necesita tres
@@ -68,8 +68,8 @@
   --color-ok-suave: #e6f2ea;
 
   /* --- Tipografía -------------------------------------------------------- */
-  /* `--font-inter` lo inyecta next/font desde el layout: sin peticiones externas. */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, "Segoe UI", Roboto,
+  /* `--font-optimist` lo inyecta next/font desde el layout: sin peticiones externas. */
+  --font-sans: var(--font-optimist), ui-sans-serif, system-ui, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
 
@@ -117,8 +117,8 @@
 
   /* --- Formas ------------------------------------------------------------ */
   /* Botones y campos 4px; tarjetas 8px; píldoras redondas. */
-  --radius-control: 0.25rem;
-  --radius-tarjeta: 0.5rem;
+  --radius-control: 0.75rem;
+  --radius-tarjeta: 1rem;
   --radius-panel: 0.75rem;
   --radius-pildora: 9999px;
 
@@ -133,7 +133,7 @@
   --spacing-margen-movil: 1rem;
 
   /* --- Rejilla ------------------------------------------------------------ */
-  --container-lienzo: 80rem;
+  --container-lienzo: 48rem;
 }
 
 @layer base {
@@ -317,4 +317,17 @@
     border-color: var(--color-acento);
     box-shadow: inset 0 0 0 1px var(--color-acento);
   }
+}
+
+/* Mobile: controles táctiles, jerarquía breve y sin desbordamiento horizontal. */
+@layer base {
+  body { overflow-wrap: anywhere; }
+  button, summary { touch-action: manipulation; }
+  summary { cursor: pointer; }
+}
+@layer components {
+  .campo { font-size: 1rem; min-height: 3rem; }
+  .boton-principal, .boton-secundario, .boton-descartar, .pildora { min-height: 2.75rem; }
+  .boton-principal { border-radius: 999px; }
+  .rotulo { text-transform: none; letter-spacing: 0; font-size: .875rem; font-weight: 400; }
 }

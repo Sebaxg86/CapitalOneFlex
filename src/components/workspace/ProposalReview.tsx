@@ -120,12 +120,12 @@ export default function ProposalReview({
                 <span className="font-semibold">{TEXTS.propuesta.diffEtiqueta}: </span>
                 {change.humanDiff}
               </p>
-              <p className="mt-2 border-l-2 border-acento-borde pl-3 text-cuerpo-sm italic text-tinta-suave">
+              <details className="mt-2 text-sm text-tinta-suave"><summary>Ver el mensaje original</summary><p className="mt-2 border-l-2 border-acento-borde pl-3">
                 <span className="not-italic font-semibold">
                   {TEXTS.propuesta.evidenciaEtiqueta}:{' '}
                 </span>
                 «{change.evidence}»
-              </p>
+              </p></details>
             </li>
           ))}
         </ol>

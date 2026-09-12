@@ -35,7 +35,7 @@ export const TEXTS = {
     escenarioEtiqueta: 'Escenario',
     revisionEtiqueta: 'Revisión',
     saldoInicialEtiqueta: 'Saldo inicial',
-    cajaMinimaEtiqueta: 'Caja mínima',
+    cajaMinimaEtiqueta: 'Dinero de reserva',
     almacenamientoEtiqueta: 'Los datos',
     almacenamiento: {
       'tiger-data': 'Se guardan de forma permanente',
@@ -112,7 +112,7 @@ export const TEXTS = {
 
   riesgo: {
     faltanteTotalEtiqueta: 'Total que falta esta semana',
-    saldoMinimoEtiqueta: 'Saldo de cierre más bajo',
+    saldoMinimoEtiqueta: 'Lo mínimo que te quedaría',
     saldoMinimoFechaEtiqueta: 'Día del saldo más bajo',
     sinRiesgoTitulo: 'La semana no presenta faltante',
     sinRiesgoCuerpo:
@@ -126,7 +126,7 @@ export const TEXTS = {
       medium: 'media',
       low: 'baja',
     },
-    bloqueoTitulo: 'Ninguna combinación de las alternativas registradas cubre el faltante',
+    bloqueoTitulo: 'Con estas opciones todavía falta dinero',
     bloqueoResidualEtiqueta: 'Lo que seguiría faltando aun con el mejor plan',
     bloqueoAlcanceEtiqueta: 'Alcance de esta conclusión',
     bloqueoMotivo: {
@@ -139,12 +139,12 @@ export const TEXTS = {
   },
 
   calendario: {
-    titulo: 'Calendario de caja',
+    titulo: 'Tu dinero por día',
     tablaResumen:
       'Saldo de cierre de cada día del horizonte, con los cobros y pagos que lo componen.',
     colDia: 'Día',
-    diasHorizonteEtiqueta: 'Días del horizonte',
-    diasBajoMinimoEtiqueta: 'Días bajo la caja mínima',
+    diasHorizonteEtiqueta: 'Días que revisamos',
+    diasBajoMinimoEtiqueta: 'Días en los que no alcanza',
     colCobros: 'Cobros',
     colPagos: 'Pagos',
     colCierre: 'Saldo de cierre',
@@ -152,9 +152,9 @@ export const TEXTS = {
     colEstado: 'Estado',
     estadoBajoMinimo: '▼ Bajo la caja mínima',
     estadoSobreMinimo: '✓ Sobre la caja mínima',
-    lineaMinimaEtiqueta: 'Línea de caja mínima',
+    lineaMinimaEtiqueta: 'Dinero que quieres reservar',
     lineaMinimaLeyenda: 'La línea vertical marca el nivel de caja mínima en cada barra.',
-    pendientesTitulo: 'Vencimientos posteriores al horizonte',
+    pendientesTitulo: 'Pendiente para la próxima semana',
     pendientesAyuda:
       'Aplazar o dividir no elimina la obligación: estos importes siguen pendientes después del último día del horizonte.',
     pendientesVacio: 'No hay vencimientos registrados después del horizonte.',
@@ -169,8 +169,8 @@ export const TEXTS = {
     titulo: 'Facturas relevantes',
     vacio: 'No hay facturas por cobrar registradas en este escenario.',
     sinRelevantes: 'Ninguna factura encaja con este enfoque.',
-    dentroHorizonte: 'Dentro del horizonte',
-    fueraHorizonte: 'Fuera del horizonte',
+    dentroHorizonte: 'Esta semana',
+    fueraHorizonte: 'Después de esta semana',
     importeEtiqueta: 'Importe',
     fechaEtiqueta: 'Fecha esperada',
     conceptoEtiqueta: 'Concepto',
@@ -183,41 +183,41 @@ export const TEXTS = {
   },
 
   planes: {
-    titulo: 'Comparador de planes',
+    titulo: 'Tus opciones',
     costoEtiqueta: 'Costo',
-    modificadosEtiqueta: 'Compromisos modificados',
-    saldoMinimoEtiqueta: 'Saldo mínimo resultante',
+    modificadosEtiqueta: 'Pagos que cambian',
+    saldoMinimoEtiqueta: 'Mínimo en la semana',
     saldoMinimoFechaEtiqueta: 'Día del saldo mínimo',
     accionesTitulo: 'Acciones del plan',
     accionCostoEtiqueta: 'Costo de la acción',
-    condicionalAviso: 'Todavía no es dinero disponible',
+    condicionalAviso: 'Depende de que acepten',
     condicionalCuerpo:
       'Este plan solo funciona si la otra parte acepta. Mientras tanto no cuentes con ese dinero.',
     condicionesTitulo: 'Condiciones pendientes',
     condicionAprobacion: {
       confirmed: 'Acuerdo ya registrado',
-      requires_agreement: 'Requiere acuerdo de la contraparte',
+      requires_agreement: 'Por confirmar',
     },
     noCondicional: 'Sin condiciones pendientes: todas las acciones ya están registradas.',
     rechazarPrefijo: 'Descartar',
-    excluirPrefijo: 'Excluir',
+    excluirPrefijo: 'No puedo hacer esto con',
     rechazarAyuda:
-      'Deja de considerarse en todos los planes y se vuelve a calcular. No cancela ningún pago ya registrado.',
+      'Quitamos esta opción y buscamos otra. No se cancela ningún pago.',
     rechazando: 'Descartando…',
   },
 
   restricciones: {
-    titulo: 'Restricciones y bloqueos',
+    titulo: 'Qué puedes cambiar',
     vacio: 'No hay restricciones registradas para este escenario.',
     grupos: {
       essential_obligation: 'Compromisos esenciales',
-      minimum_cash: 'Caja mínima',
+      minimum_cash: 'Dinero de reserva',
       excluded_action: 'Acciones descartadas',
       requires_agreement: 'Condiciones pendientes',
-      outside_horizon: 'Vencimientos fuera del horizonte',
+      outside_horizon: 'Pagos para después de esta semana',
     } satisfies Record<ConstraintKind, string>,
     bloqueoTitulo: 'Escenario bloqueado',
-    bloqueoResidualEtiqueta: 'Faltante mínimo residual',
+    bloqueoResidualEtiqueta: 'Lo que aún falta',
     bloqueoAfectadas: 'Restricciones implicadas',
     importeEtiqueta: 'Importe',
     fechaEtiqueta: 'Fecha',
@@ -257,9 +257,9 @@ export const TEXTS = {
     titulo: 'Aviso del cliente',
     ayuda:
       'Pega el mensaje recibido. Revisarlo no cambia ningún dato: siempre se confirma antes.',
-    etiquetaTextarea: 'Mensaje recibido',
+    etiquetaTextarea: '¿Qué cambió?',
     marcador: 'Pega aquí el aviso del cliente…',
-    interpretar: 'Revisar aviso',
+    interpretar: 'Ver qué cambia',
     interpretando: 'Revisando…',
     limpiar: 'Limpiar',
     ejemplosTitulo: 'Mensajes sintéticos de la demo',

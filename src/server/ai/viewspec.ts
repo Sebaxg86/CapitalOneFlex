@@ -18,7 +18,7 @@ import { z } from 'zod';
 import type { EngineResult } from '@/domain/types';
 
 /** Version del contrato + prompt. Forma parte de la clave de cache. */
-export const PROMPT_VERSION = 'v1';
+export const PROMPT_VERSION = 'mobile-v2';
 
 export const COMPONENT_TYPES = [
   'risk_summary',
@@ -39,19 +39,19 @@ export type Focus = (typeof FOCUS_VALUES)[number];
 export const MAX_SECTIONS = 6;
 
 export const FOCUS_LABELS: Record<Focus, string> = {
-  overview: 'Panorama general',
-  payroll: 'Nómina y riesgo',
+  overview: 'Mi semana',
+  payroll: 'Cómo pagar',
   receivables: 'Cobros pendientes',
-  no_solution: 'Bloqueos y faltante',
-  history: 'Historial',
+  no_solution: 'Qué me lo impide',
+  history: 'Qué cambió',
 };
 
 export const COMPONENT_LABELS: Record<ComponentType, string> = {
   risk_summary: 'Resumen de riesgo',
-  cash_calendar: 'Calendario de caja',
-  receivables: 'Facturas relevantes',
-  plan_comparison: 'Comparador de planes',
-  constraints: 'Restricciones y bloqueos',
+  cash_calendar: 'Tu dinero por día',
+  receivables: 'Lo que te deben',
+  plan_comparison: 'Tus opciones',
+  constraints: 'Qué puedes cambiar',
   history: 'Historial de decisiones',
 };
 

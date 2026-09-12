@@ -1,3 +1,5 @@
+import type { BeforeAfter } from '@/lib/contracts';
+import { formatCents } from '@/domain/money';
 import type { EngineResult } from '@/domain/types';
 import type { ViewSpecSection } from '@/server/ai/viewspec';
 import { TEXTS } from '@/lib/texts';
@@ -39,6 +41,7 @@ export interface HistoryProps {
   section: ViewSpecSection;
   parte: 'sintesis' | 'detalle';
   entries?: HistoryEntry[];
+  beforeAfter?: BeforeAfter[];
 }
 
 type Categoria = keyof typeof TEXTS.historial.tipos;
@@ -169,7 +172,7 @@ function Tabla({ filas }: { filas: Fila[] }) {
   );
 }
 
-export default function History({ entries, parte }: HistoryProps) {
+export default function History({ entries, parte, beforeAfter }: HistoryProps) {
   const filas = construirFilas(entries ?? []);
 
   if (filas.length === 0) {
@@ -181,10 +184,15 @@ export default function History({ entries, parte }: HistoryProps) {
   }
 
   const ultima = filas[0];
+  const comparison = beforeAfter?.filter(x=>x.beforeShortfallCents !== null && x.afterShortfallCents !== null).at(-1);
 
   if (parte === 'sintesis') {
     return (
       <div className="space-y-1.5">
+        {comparison && <div className="grid grid-cols-2 gap-3 rounded-panel bg-acento-suave p-4 mb-3">
+          <div><p className="text-sm">Antes faltaban</p><p className="text-xl cifra font-semibold">{formatCents(comparison.beforeShortfallCents!)}</p></div>
+          <div><p className="text-sm">Después faltan</p><p className="text-xl cifra font-semibold">{formatCents(comparison.afterShortfallCents!)}</p></div>
+        </div>}
         {/*
           La etiqueta ya nombra el tipo de evento: repetir `entry.label` al lado
           lo imprimía dos veces seguidas. Aquí va la etiqueta y el detalle.

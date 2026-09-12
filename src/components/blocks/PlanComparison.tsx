@@ -74,10 +74,10 @@ function PlanSintesis({
       }`}
     >
       {/* 1. La descripción del plan aparece UNA sola vez, como título. */}
-      <h3 className="text-cuerpo font-semibold text-tinta">{plan.label}</h3>
+      <h3 className="text-cuerpo font-semibold text-tinta">{plan.actions.map(a => ({defer:'Pagar más tarde',split:'Pagar en dos partes',advance_receivable:'Cobrar antes'}[a.kind])).filter((v,i,a)=>a.indexOf(v)===i).join(' + ')}</h3>
 
       {/* 2. Cifras comparables entre columnas. */}
-      <dl className="grid grid-cols-3 gap-x-3">
+      <dl className="grid grid-cols-2 gap-x-3">
         <div>
           <dt className="rotulo">{TEXTS.planes.costoEtiqueta}</dt>
           <dd className="cifra mt-0.5 text-titular-sm text-tinta">{formatCents(plan.costCents)}</dd>
@@ -88,12 +88,7 @@ function PlanSintesis({
             {formatCents(plan.minimumClosingCents)}
           </dd>
         </div>
-        <div>
-          <dt className="rotulo">{TEXTS.planes.modificadosEtiqueta}</dt>
-          <dd className="cifra mt-0.5 text-titular-sm text-tinta">
-            {plan.modifiedObligationCount}
-          </dd>
-        </div>
+
       </dl>
 
       {/*
@@ -111,7 +106,7 @@ function PlanSintesis({
               {plan.pendingConditions.map((condition) => (
                 <li key={condition.optionId}>
                   <span className="font-semibold">{condition.counterparty}: </span>
-                  {condition.text}{' '}
+                  {condition.text.replace(/Solo es posible si .*? acepta\. Hasta entonces no es dinero disponible\./, 'Necesita aceptar el acuerdo.')}{' '}
                   <span className="text-tinta-tenue">
                     ({TEXTS.planes.condicionAprobacion[condition.approval]})
                   </span>
@@ -154,7 +149,7 @@ function PlanSintesis({
                 );
               })}
             </div>
-            <p className="mt-1 text-pie text-tinta-tenue">{TEXTS.planes.rechazarAyuda}</p>
+
           </>
         ) : null}
       </div>

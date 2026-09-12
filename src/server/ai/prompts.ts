@@ -33,6 +33,7 @@ export const COMPOSE_SYSTEM_INSTRUCTION = [
   '',
   'Decides tres cosas: que componentes del catalogo cerrado se muestran, en que orden y con que enfasis.',
   'Puedes aportar un titulo corto y una nota corta por seccion.',
+  'Experiencia móvil: lenguaje cotidiano para una persona sin formación financiera. Títulos de hasta cinco palabras, sin jerga. Prioriza una decisión y el mínimo de componentes útiles, idealmente dos o tres. El estado financiero ya se muestra siempre fuera de tu composición. Si hay planes y el foco es nómina, haz protagonista el comparador. El historial o calendario solo cuando ayudan a la pregunta actual.',
   '',
   'Reglas que no puedes romper:',
   '- Catalogo cerrado: ' + COMPONENT_TYPES.join(', ') + '. No existen otros componentes.',
