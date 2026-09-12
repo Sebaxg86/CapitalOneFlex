@@ -1,0 +1,320 @@
+@import "tailwindcss";
+
+/**
+ * Sistema de diseño «Modern Financial Trust».
+ *
+ * Los valores provienen del sistema exportado desde Stitch, en
+ * `design/stitch_capital_one_design_system_extraction/modern_financial_trust/DESIGN.md`:
+ * estética bancaria, contraste alto, elevación baja, acento reservado a las
+ * acciones. Se toman los TOKENS y las especificaciones de componente, no la
+ * marca ni la disposición de aquella página.
+ *
+ * Los nombres semánticos se mantienen en español y estables: los componentes
+ * se apoyan en el significado (`superficie`, `tinta`, `acento`), no en el valor.
+ */
+@theme {
+  /* --- Superficies ------------------------------------------------------ */
+  /** Lienzo de la aplicación. */
+  --color-lienzo: #fcf9f8;
+  /** Tarjetas y paneles sobre el lienzo. */
+  --color-superficie: #ffffff;
+  /** Bloques secundarios dentro de una tarjeta. */
+  --color-superficie-suave: #f0edec;
+  /** Franja tenue para cabeceras de tabla y zonas de apoyo. */
+  --color-superficie-tenue: #f6f3f2;
+  /** Superficie invertida para barras y pies. */
+  --color-superficie-oscura: #3d3d3d;
+
+  /* --- Texto ------------------------------------------------------------ */
+  --color-tinta: #141414;
+  --color-tinta-suave: #3d3d3d;
+  --color-tinta-tenue: #666666;
+  --color-tinta-inversa: #f3f0ef;
+
+  /* --- Bordes ----------------------------------------------------------- */
+  --color-borde: #e5e5e5;
+  --color-borde-fuerte: #b0b0b0;
+
+  /* --- Acento: acciones, enlaces y estado activo ------------------------- */
+  --color-acento: #0276b1;
+  --color-acento-fuerte: #015b8a;
+  --color-acento-profundo: #0f4b75;
+  --color-acento-suave: #eff6ff;
+  --color-acento-borde: #cce5ff;
+
+  /* --- Estados ----------------------------------------------------------- */
+  /* Riesgo e inviabilidad: el rojo del sistema. */
+  --color-alerta: #ba1a1a;
+  --color-alerta-texto: #93000a;
+  --color-alerta-suave: #ffdad6;
+
+  /*
+   * Extensión documentada 1 de 2. Un producto de riesgo de caja necesita tres
+   * niveles (cubierto / condicionado / en riesgo) y el sistema de origen solo
+   * aporta un color de alarma. El ámbar señala «depende de un acuerdo que
+   * todavía no existe» sin leerse como error. Contraste AA sobre su fondo.
+   */
+  --color-aviso: #8a5000;
+  --color-aviso-texto: #6b3d00;
+  --color-aviso-suave: #fff2df;
+
+  /*
+   * Extensión documentada 2 de 2. Verde solo para «la caja aguanta»: en el
+   * calendario y en el resumen de riesgo hay que distinguir de un vistazo los
+   * días cubiertos de los descubiertos.
+   */
+  --color-ok: #1c6b3f;
+  --color-ok-texto: #14532d;
+  --color-ok-suave: #e6f2ea;
+
+  /* --- Tipografía -------------------------------------------------------- */
+  /* `--font-inter` lo inyecta next/font desde el layout: sin peticiones externas. */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, Consolas, monospace;
+
+  --text-titular-xl: 2.75rem;
+  --text-titular-xl--line-height: 3.25rem;
+  --text-titular-xl--letter-spacing: -0.02em;
+  --text-titular-xl--font-weight: 700;
+
+  --text-titular-lg: 2rem;
+  --text-titular-lg--line-height: 2.5rem;
+  --text-titular-lg--letter-spacing: -0.015em;
+  --text-titular-lg--font-weight: 600;
+
+  --text-titular-md: 1.5rem;
+  --text-titular-md--line-height: 1.875rem;
+  --text-titular-md--letter-spacing: -0.01em;
+  --text-titular-md--font-weight: 600;
+
+  --text-titular-sm: 1.25rem;
+  --text-titular-sm--line-height: 1.625rem;
+  --text-titular-sm--font-weight: 600;
+
+  --text-cuerpo-lg: 1.125rem;
+  --text-cuerpo-lg--line-height: 1.625rem;
+
+  --text-cuerpo: 1rem;
+  --text-cuerpo--line-height: 1.5rem;
+
+  --text-cuerpo-sm: 0.875rem;
+  --text-cuerpo-sm--line-height: 1.25rem;
+
+  --text-pie: 0.75rem;
+  --text-pie--line-height: 1rem;
+
+  /** Etiqueta de sección en versales, con tracking abierto. */
+  --text-rotulo: 0.75rem;
+  --text-rotulo--line-height: 1rem;
+  --text-rotulo--letter-spacing: 0.08em;
+  --text-rotulo--font-weight: 700;
+
+  --text-boton: 0.9375rem;
+  --text-boton--line-height: 1.25rem;
+  --text-boton--letter-spacing: 0.01em;
+  --text-boton--font-weight: 600;
+
+  /* --- Formas ------------------------------------------------------------ */
+  /* Botones y campos 4px; tarjetas 8px; píldoras redondas. */
+  --radius-control: 0.25rem;
+  --radius-tarjeta: 0.5rem;
+  --radius-panel: 0.75rem;
+  --radius-pildora: 9999px;
+
+  /* --- Elevación: baja, la jerarquía la dan el tono y el trazo ------------ */
+  --shadow-nivel1: 0 2px 8px rgb(0 0 0 / 0.08);
+  --shadow-nivel2: 0 6px 16px rgb(0 0 0 / 0.12);
+  --shadow-nivel3: 0 4px 20px rgb(0 0 0 / 0.15);
+
+  /* --- Ritmo de espaciado ------------------------------------------------- */
+  --spacing-medianil: 1.5rem;
+  --spacing-margen: 2rem;
+  --spacing-margen-movil: 1rem;
+
+  /* --- Rejilla ------------------------------------------------------------ */
+  --container-lienzo: 80rem;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-lienzo);
+    color: var(--color-tinta);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Foco siempre visible: la demo se recorre también con teclado.
+     El sistema pide 2px de trazo con 2px de separación. */
+  :focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  caption {
+    text-align: left;
+  }
+
+  /* Las cifras se comparan en columna: alineadas y de ancho fijo. */
+  .cifra {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+}
+
+@layer components {
+  /* Botón principal: una sola acción destacada por pantalla. */
+  .boton-principal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 1.25rem;
+    border-radius: var(--radius-control);
+    background-color: var(--color-acento);
+    color: #ffffff;
+    font-size: var(--text-boton);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: background-color 120ms ease;
+  }
+
+  .boton-principal:hover:not(:disabled) {
+    background-color: var(--color-acento-fuerte);
+  }
+
+  .boton-principal:disabled {
+    background-color: var(--color-borde-fuerte);
+    cursor: not-allowed;
+  }
+
+  /* Botón secundario: contorno, sin relleno. */
+  .boton-secundario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 1.125rem;
+    border-radius: var(--radius-control);
+    border: 1.5px solid var(--color-acento);
+    color: var(--color-acento);
+    background-color: transparent;
+    font-size: var(--text-boton);
+    font-weight: 600;
+    transition: background-color 120ms ease;
+  }
+
+  .boton-secundario:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--color-acento) 6%, transparent);
+  }
+
+  .boton-secundario:disabled {
+    border-color: var(--color-borde-fuerte);
+    color: var(--color-tinta-tenue);
+    cursor: not-allowed;
+  }
+
+  /* Botón discreto para acciones destructivas de escenario. */
+  .boton-descartar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 2.25rem;
+    padding: 0 0.75rem;
+    border-radius: var(--radius-control);
+    border: 1px solid var(--color-borde-fuerte);
+    color: var(--color-tinta-suave);
+    background-color: var(--color-superficie);
+    font-size: var(--text-cuerpo-sm);
+    font-weight: 600;
+    transition:
+      border-color 120ms ease,
+      color 120ms ease;
+  }
+
+  .boton-descartar:hover:not(:disabled) {
+    border-color: var(--color-alerta);
+    color: var(--color-alerta-texto);
+  }
+
+  .boton-descartar:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  /* Tarjeta base de la zona compuesta. */
+  .tarjeta {
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radius-tarjeta);
+  }
+
+  /* Rótulo de sección en versales. */
+  .rotulo {
+    font-size: var(--text-rotulo);
+    line-height: 1rem;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--color-tinta-tenue);
+  }
+
+  /* Píldoras del selector de enfoque. */
+  .pildora {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;
+    padding: 0 1rem;
+    border-radius: var(--radius-pildora);
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    color: var(--color-tinta-suave);
+    font-size: var(--text-boton);
+    font-weight: 600;
+    transition:
+      background-color 120ms ease,
+      color 120ms ease;
+  }
+
+  .pildora:hover {
+    color: var(--color-tinta);
+  }
+
+  .pildora-activa {
+    background-color: var(--color-acento);
+    border-color: var(--color-acento);
+    color: #ffffff;
+  }
+
+  .campo {
+    width: 100%;
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: var(--radius-control);
+    background-color: var(--color-superficie);
+    color: var(--color-tinta);
+    padding: 0.625rem 0.75rem;
+    font-size: var(--text-cuerpo-sm);
+  }
+
+  .campo::placeholder {
+    color: var(--color-tinta-tenue);
+  }
+
+  .campo:focus {
+    outline: none;
+    border-color: var(--color-acento);
+    box-shadow: inset 0 0 0 1px var(--color-acento);
+  }
+}

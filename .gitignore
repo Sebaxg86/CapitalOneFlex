@@ -1,0 +1,35 @@
+# Dependencias
+node_modules/
+.pnp/
+.pnp.js
+
+# Build
+.next/
+.next-e2e/
+out/
+build/
+dist/
+
+# Entorno: nunca versionar secretos
+.env
+.env.*
+!.env.example
+
+# Pruebas
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+.vscode/
+.idea/
+
+# Artefactos locales
+*.tsbuildinfo
+next-env.d.ts
