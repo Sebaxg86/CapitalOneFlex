@@ -331,3 +331,8 @@
   .boton-principal { border-radius: 999px; }
   .rotulo { text-transform: none; letter-spacing: 0; font-size: .875rem; font-weight: 400; }
 }
+
+@keyframes mostrar-cambio { from { opacity: .45; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: no-preference) {
+  .cambio-visible { animation: mostrar-cambio .35s ease-out; }
+}

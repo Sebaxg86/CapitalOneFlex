@@ -3,10 +3,12 @@
  * credenciales de Tiger Data. NO es persistencia: se pierde al reiniciar y la
  * interfaz lo declara. Nunca se presenta como la integracion real.
  */
+import { RevisionConflict } from './types';
 import type { EngineResult } from '@/domain/types';
 import type { ComposedView } from '@/server/ai/viewspec';
 import type { PendingProposal } from '@/lib/contracts';
 import type {
+  MutationCommit,
   ClaimOutcome,
   EventRecord,
   ScenarioRecord,
@@ -51,6 +53,34 @@ const viewKey = (resultId: string, focus: string, promptVersion: string) =>
 
 export class MemoryStore implements Store {
   readonly kind = 'memoria-local' as const;
+
+  async getOperationRef(key: string): Promise<string | null> {
+    return state().operationKeys.get(key) ?? null;
+  }
+
+  async commitMutation(m: MutationCommit): Promise<boolean> {
+    // Sin await entre comprobar y escribir: una mutación indivisible en memoria.
+    const data = state();
+    const existing = data.operationKeys.get(m.key);
+    if (existing !== undefined) {
+      if (existing !== m.reference) throw new Error('clave usada por otra operación');
+      return false;
+    }
+    const activeId = data.current.get(m.record.input.businessId);
+    const active = activeId ? data.scenarios.get(activeId) : undefined;
+    if (activeId !== m.expectedScenarioId || active?.input.baseRevision !== m.expectedRevision) throw new RevisionConflict(active?.input.baseRevision ?? 0);
+    const record = structuredClone(m.record);
+    const result = structuredClone(m.result);
+    const events = m.events.map(event => ({...structuredClone(event), eventId: crypto.randomUUID(), recordedAt: new Date().toISOString()}));
+    data.scenarios.set(record.input.scenarioId, record);
+    data.results.set(result.id, result);
+    data.events.push(...events);
+    data.current.set(record.input.businessId, record.input.scenarioId);
+    data.operationKeys.set(m.key, m.reference);
+    data.operationKeys.set('result_generated:' + result.id, result.id);
+    if (m.proposalId) { const proposal = data.proposals.get(m.proposalId); if (proposal) proposal.status = 'confirmed'; }
+    return true;
+  }
 
   describe(): string {
     return 'Memoria del proceso: el escenario y el historial se pierden al reiniciar el servidor.';

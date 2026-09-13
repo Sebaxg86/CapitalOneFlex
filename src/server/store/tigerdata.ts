@@ -5,6 +5,7 @@
  * La lectura del historial es una consulta temporal real sobre la hypertable
  * `financial_events`, acotada por negocio y ventana de tiempo.
  */
+import { RevisionConflict } from './types';
 import type { EngineResult } from '@/domain/types';
 import type { ComposedView } from '@/server/ai/viewspec';
 import type { PendingProposal } from '@/lib/contracts';
@@ -26,6 +27,7 @@ import {
 } from '@/server/db/repository';
 import { DEMO_BUSINESS_ID } from '@fixtures/index';
 import type {
+  MutationCommit,
   ClaimOutcome,
   EventRecord,
   EventType,
@@ -47,6 +49,36 @@ interface EventRow {
 
 export class TigerDataStore implements Store {
   readonly kind = 'tiger-data' as const;
+
+  async getOperationRef(key: string): Promise<string | null> {
+    const {rows} = await getPool().query<{result_ref: string}>(`SELECT result_ref FROM ${SCHEMA}.operation_keys WHERE key = $1`, [key]);
+    return rows[0]?.result_ref ?? null;
+  }
+
+  async commitMutation(m: MutationCommit): Promise<boolean> {
+    const client = await getPool().connect();
+    try {
+      await client.query('BEGIN');
+      const {rows} = await client.query<{current_scenario_id: string}>(`SELECT current_scenario_id FROM ${SCHEMA}.business_state WHERE business_id = $1 FOR UPDATE`, [m.record.input.businessId]);
+      const claim = await dbClaimOperationKey(m.key, m.operation, m.reference, client);
+      if (!claim.claimed) {
+        if (claim.existingRef !== m.reference) throw new Error('clave usada por otra operación');
+        await client.query('COMMIT');
+        return false;
+      }
+      const active = rows[0] ? await loadScenarioInput(rows[0].current_scenario_id, client) : null;
+      if (active?.scenarioId !== m.expectedScenarioId || active?.baseRevision !== m.expectedRevision) throw new RevisionConflict(active?.baseRevision ?? 0);
+      await dbSaveScenario(m.record.input, {label:m.record.label, parentScenarioId:m.record.parentScenarioId, executor:client});
+      await dbSaveResult(m.result, client);
+      for (const event of m.events) await dbAppendEvent(event, client);
+      await dbClaimOperationKey('result_generated:' + m.result.id, 'result_generated', m.result.id, client);
+      if (m.proposalId) await dbMarkProposalResolved(m.proposalId, 'confirmed', client);
+      await client.query(`UPDATE ${SCHEMA}.business_state SET current_scenario_id = $1, updated_at = now() WHERE business_id = $2`, [m.record.input.scenarioId, m.record.input.businessId]);
+      await client.query('COMMIT');
+      return true;
+    } catch (error) { await client.query('ROLLBACK'); throw error; }
+    finally { client.release(); }
+  }
 
   describe(): string {
     return 'Servicio Tiger Data configurado en DATABASE_URL, schema dedicado "' + SCHEMA + '".';

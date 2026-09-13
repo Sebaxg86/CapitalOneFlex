@@ -14,19 +14,19 @@ import type { ConstraintKind, RiskItem } from '@/domain/types';
 export const TEXTS = {
   /** Identidad del producto. */
   marca: {
-    nombre: 'Flex',
+    nombre: 'Capital One Flex',
     descriptor: 'Compromisos bajo presión',
   },
 
   metadatos: {
-    titulo: 'Flex · Compromisos bajo presión',
+    titulo: 'Capital One Flex',
     descripcion:
       'Demo local: calcula la caja de la semana, organiza la vista según el enfoque y espera tu confirmación antes de cambiar nada.',
   },
 
   shell: {
     saltarAlContenido: 'Saltar al contenido principal',
-    encabezadoTitulo: 'Compromisos bajo presión',
+    encabezadoTitulo: 'Capital One Flex',
     negocioEtiqueta: 'Negocio',
     monedaEtiqueta: 'Moneda',
     horizonteEtiqueta: 'Horizonte',
@@ -148,10 +148,10 @@ export const TEXTS = {
     colCobros: 'Cobros',
     colPagos: 'Pagos',
     colCierre: 'Saldo de cierre',
-    colNivel: 'Nivel frente a la caja mínima',
+    colNivel: 'Comparación con tu reserva',
     colEstado: 'Estado',
-    estadoBajoMinimo: '▼ Bajo la caja mínima',
-    estadoSobreMinimo: '✓ Sobre la caja mínima',
+    estadoBajoMinimo: '▼ Por debajo de tu reserva',
+    estadoSobreMinimo: '✓ Reserva cubierta',
     lineaMinimaEtiqueta: 'Dinero que quieres reservar',
     lineaMinimaLeyenda: 'La línea vertical marca el nivel de caja mínima en cada barra.',
     pendientesTitulo: 'Pendiente para la próxima semana',
@@ -184,9 +184,10 @@ export const TEXTS = {
 
   planes: {
     titulo: 'Tus opciones',
+    beneficio: 'Cubre los pagos de la semana y conserva tu reserva si se cumplen las condiciones.',
     costoEtiqueta: 'Costo',
     modificadosEtiqueta: 'Pagos que cambian',
-    saldoMinimoEtiqueta: 'Mínimo en la semana',
+    saldoMinimoEtiqueta: 'Saldo más bajo',
     saldoMinimoFechaEtiqueta: 'Día del saldo mínimo',
     accionesTitulo: 'Acciones del plan',
     accionCostoEtiqueta: 'Costo de la acción',
@@ -307,7 +308,7 @@ export const TEXTS = {
     operaciones: {
       reschedule_receivable: 'Cambiar la fecha esperada de un cobro',
       exclude_action: 'Descartar una acción del escenario',
-      set_minimum_cash: 'Ajustar la caja mínima',
+      set_minimum_cash: 'Cambiar el dinero de reserva',
     },
   },
 

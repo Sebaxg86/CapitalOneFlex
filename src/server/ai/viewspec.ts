@@ -18,7 +18,7 @@ import { z } from 'zod';
 import type { EngineResult } from '@/domain/types';
 
 /** Version del contrato + prompt. Forma parte de la clave de cache. */
-export const PROMPT_VERSION = 'mobile-v2';
+export const PROMPT_VERSION = 'scenario-v3';
 
 export const COMPONENT_TYPES = [
   'risk_summary',
@@ -371,8 +371,10 @@ export function buildFallbackViewSpec(result: EngineResult, focus: Focus): ViewS
     order = ['receivables', 'risk_summary', 'plan_comparison', 'cash_calendar', 'constraints'];
   } else if (focus === 'history') {
     order = ['history', 'risk_summary', 'cash_calendar', 'constraints'];
-  } else if (!hasPlans && hasRisk) {
+  } else if (focus === 'no_solution' || (!hasPlans && hasRisk)) {
     order = ['constraints', 'risk_summary', 'cash_calendar', 'history'];
+  } else if (focus === 'overview') {
+    order = ['cash_calendar', 'receivables', 'risk_summary', 'plan_comparison', 'constraints'];
   } else if (hasRisk) {
     order = ['risk_summary', 'plan_comparison', 'cash_calendar', 'constraints'];
   } else {
@@ -387,7 +389,7 @@ export function buildFallbackViewSpec(result: EngineResult, focus: Focus): ViewS
     })
     .slice(0, MAX_SECTIONS)
     .map((type, index) =>
-      defaultSection(type, result, index === 0 ? 'high' : 'normal'),
+      defaultSection(type, result, type !== 'risk_summary' && index === order.findIndex(t => t !== 'risk_summary') ? 'high' : 'normal'),
     );
 
   return { schemaVersion: 1, resultId: result.id, focus, sections };

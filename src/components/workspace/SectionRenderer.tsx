@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
+import { formatCents } from '@/domain/money';
+import { formatEconomicDate } from '@/domain/dates';
 import type { EngineResult } from '@/domain/types';
 import {
   COMPONENT_LABELS,
@@ -32,8 +34,11 @@ export interface SectionRendererProps {
   historyEntries?: HistoryEntry[];
   beforeAfter?: BeforeAfter[];
   onRejectAction?: (optionId: string) => void;
+  onUndoHistory?: (eventId: string) => void;
   rejectingOptionId?: string | null;
   busy?: boolean;
+  onSelectPlan?: (planId: string) => void;
+  selectedPlanId?: string | null;
 }
 
 const CATALOGO: ReadonlySet<string> = new Set<string>(COMPONENT_TYPES);
@@ -157,12 +162,14 @@ function renderBlock(
           onReject={onRejectAction}
           rejectingOptionId={rejectingOptionId}
           busy={busy}
+          onSelect={props.onSelectPlan}
+          selectedPlanId={props.selectedPlanId}
         />
       );
     case 'constraints':
       return <Constraints {...comun} />;
     case 'history':
-      return <History {...comun} entries={historyEntries} beforeAfter={props.beforeAfter} />;
+      return <History {...comun} entries={historyEntries} beforeAfter={props.beforeAfter} onUndo={props.onUndoHistory} busy={props.busy} />;
     default:
       return null;
   }
@@ -176,36 +183,70 @@ function renderBlock(
  * Lo que NUNCA se pliega (faltante, inviabilidad, condiciones pendientes de un
  * plan, costo de un adelanto) lo garantiza cada bloque en su propia síntesis.
  */
-function Seccion({ section, props, open, onToggle }: {
-  section: ViewSpecSection; props: SectionRendererProps; open: boolean; onToggle: () => void;
-}) {
-  const id = `seccion-${section.type}`;
-  const proposedTitle = section.title ? resolveFactTokens(section.title, props.result) : '';
-  const title = proposedTitle && proposedTitle.length <= 55 ? proposedTitle : COMPONENT_LABELS[section.type];
-  return <section data-seccion={section.type} data-enfasis={section.emphasis} data-abierta={open ? 'si' : 'no'} className="tarjeta overflow-hidden">
-    <h2>
-      <button aria-expanded={open} aria-controls={id} onClick={onToggle} className="flex w-full items-center justify-between gap-3 p-4 text-left text-lg font-semibold text-acento-profundo">
-        {title}<span aria-hidden="true">{open ? '−' : '+'}</span>
-      </button>
-    </h2>
-    <div id={id} hidden={!open} className="px-4 pb-4">
-      {renderBlock(section.type, section, props, 'sintesis')}
-      <details className="mt-4 text-sm text-tinta-suave">
-        <summary>Ver cómo se calcula</summary>
-        <div className="mt-3 overflow-x-auto">{renderBlock(section.type, section, props, 'detalle')}</div>
-      </details>
+function CalendarTimeline({ result }: { result: EngineResult }) {
+  return <ol className="space-y-2">
+    {result.baseline.dailyBalances.map(day => <li key={day.date} className={`grid grid-cols-[1fr_auto] gap-2 rounded-xl border-l-4 p-3 ${day.closingCents < result.minimumCashCents ? 'border-aviso bg-aviso-suave' : 'border-borde bg-superficie-tenue'}`}>
+      <div><p className="font-semibold">{formatEconomicDate(day.date)}</p>
+        <p className="text-sm text-tinta-suave">{day.inflowCents > 0 ? `Cobras ${formatCents(day.inflowCents)}` : 'Sin cobros'} · {day.outflowCents > 0 ? `Pagas ${formatCents(day.outflowCents)}` : 'Sin pagos'}</p>
+      </div>
+      <div className="text-right"><p className="text-xs text-tinta-suave">Te quedan</p><p className="cifra font-semibold">{formatCents(day.closingCents)}</p></div>
+    </li>)}
+  </ol>;
+}
+
+function DecisionLimits({ result }: { result: EngineResult }) {
+  const excluded = result.constraints.filter(item => item.kind === 'excluded_action');
+  const essential = result.constraints.filter(item => item.kind === 'essential_obligation');
+  return <div className="space-y-4">
+    {excluded.length > 0 && <div>
+      <h3 className="font-semibold">Opciones que descartaste</h3>
+      <ul className="mt-2 space-y-2">{excluded.map(item => <li key={item.id} className="rounded-xl border border-aviso bg-superficie p-3 text-sm">{item.title.replace(/^Acción descartada:\s*/i, '')}</li>)}</ul>
+      <p className="mt-2 text-sm text-tinta-suave">Si alguna vuelve a ser posible, usa Deshacer último cambio para recuperar el paso anterior.</p>
+    </div>}
+    <div className="rounded-xl bg-superficie p-4">
+      <p className="font-semibold">Tu reserva: {formatCents(result.minimumCashCents)}</p>
+      <p className="mt-1 text-sm text-tinta-suave">Este dinero debe quedar disponible después de pagar.</p>
+      {essential.length > 0 && <><h3 className="mt-3 font-semibold">Pagos que no podemos mover</h3>
+        <ul className="mt-2 space-y-1 text-sm">{essential.map(item => <li key={item.id}>{item.title.replace(/^No se puede mover:\s*/i, '')}{item.amountCents !== undefined ? ' · ' + formatCents(item.amountCents) : ''}</li>)}</ul></>}
     </div>
+  </div>;
+}
+
+const PURPOSE: Partial<Record<ComponentType, string>> = {
+  cash_calendar: 'Estos son tus cobros y pagos previstos. La reserva debe quedar cubierta al cierre de cada día.',
+  receivables: 'Revisa cuándo esperas cobrar y qué adelantos podrías negociar.',
+  constraints: 'Revisa qué acuerdos podrías volver a considerar. Los pagos esenciales siguen protegidos.',
+  history: 'Compara el faltante y consulta las decisiones que has tomado.',
+};
+
+function Seccion({ section, props, primary }: {
+  section: ViewSpecSection; props: SectionRendererProps; primary: boolean;
+}) {
+  const proposedTitle = section.title ? resolveFactTokens(section.title, props.result) : '';
+  const title = section.type === 'plan_comparison' && props.result.plans.length === 1 ? 'La alternativa que queda' : proposedTitle && proposedTitle.length <= 55 ? proposedTitle : COMPONENT_LABELS[section.type];
+  const proposedNote = section.note ? resolveFactTokens(section.note, props.result) : '';
+  const explanation = proposedNote && proposedNote.length <= 220 ? proposedNote : PURPOSE[section.type];
+  const detailLabel = section.type === 'history' ? 'Ver todos los registros' : section.type === 'plan_comparison' ? 'Ver fechas y costos' : 'Ver el detalle';
+  const content = <>
+    {primary && explanation && <p className="mb-4 text-sm text-tinta-suave">{explanation}</p>}
+    {primary && section.type === 'constraints' ? <DecisionLimits result={props.result}/> : primary && section.type === 'cash_calendar' ? <CalendarTimeline result={props.result}/> : renderBlock(section.type, section, props, primary && section.type === 'receivables' ? 'detalle' : 'sintesis')}
+    {!(primary && section.type === 'receivables') && <details className="mt-4 text-sm text-tinta-suave"><summary>{detailLabel}</summary><div className="mt-3 overflow-x-auto">{renderBlock(section.type, section, props, 'detalle')}</div></details>}
+  </>;
+  return <section data-seccion={section.type} data-enfasis={section.emphasis} data-protagonista={primary ? 'si' : 'no'} className={primary ? `cambio-visible rounded-2xl border p-4 sm:p-6 ${section.type === 'constraints' ? 'border-aviso bg-aviso-suave' : 'border-borde bg-superficie'}` : 'rounded-xl border border-borde bg-superficie p-4'}>
+    {primary ? <><h2 className="mb-3 text-2xl font-semibold text-acento-profundo">{title}</h2>{content}</> : <details><summary className="font-semibold text-acento-profundo">{title}</summary><div className="mt-3">{content}</div></details>}
   </section>;
 }
 
 function Composicion({props}: {props: SectionRendererProps}) {
-  // El estado financiero se mantiene siempre visible en el shell. No repetirlo aquí.
   const seen = new Set<string>();
   const sections = props.spec.sections.filter(s => { if (!CATALOGO.has(s.type) || seen.has(s.type)) return false; seen.add(s.type); return true; }).filter(s => s.type !== 'risk_summary' && (s.type !== 'plan_comparison' || props.result.plans.length > 0));
-  const initial = indiceAbiertoInicial(sections);
-  const [active, setActive] = useState<string | null>(sections[initial]?.type ?? null);
-  return <div className="space-y-3">
-    {sections.map(section => <Seccion key={section.type} section={section} props={props} open={active === section.type} onToggle={()=>setActive(active === section.type ? null : section.type)}/>)}
+  const primaryIndex = indiceAbiertoInicial(sections);
+  // La composición del agente decide el protagonista por énfasis; el resto
+  // conserva su orden relativo. Cada componente tiene una presentación propia.
+  const primary = sections[primaryIndex];
+  return <div className="space-y-3" data-vista={primary?.type}>
+    {primary && <Seccion key={primary.type} section={primary} props={props} primary/>}
+    <div className="grid gap-3 sm:grid-cols-2">{sections.filter(s => s !== primary).map(section => <Seccion key={section.type} section={section} props={props} primary={false}/>)}</div>
   </div>;
 }
 

@@ -1,4 +1,4 @@
-# Compromisos bajo presión — demo local
+# Capital One Flex — HackMTY
 
 Prototipo ejecutable de la especificación aprobada en `PROYECTO.md` y `ARQUITECTURA.md`.
 Un espacio de decisiones financieras para una pyme sintética: interpreta una novedad,
@@ -10,61 +10,54 @@ qué componentes mostrar, en qué orden y con qué protagonismo.
 
 ---
 
-## Estado de las integraciones obligatorias
+## Empezar en cinco minutos
 
-Ejecute `npm run check:providers` para el estado actual. Última verificación
-realizada durante el desarrollo (12 de septiembre de 2026):
-
-| Integración | Estado | Qué se comprobó |
-|---|---|---|
-| **Tiger Data** | **verificado** | PostgreSQL 18.6 + `timescaledb` 2.30.0, TLS con `sslmode=verify-full`, migraciones en el schema `compromisos`, `financial_events` confirmada como hypertable, escritura/lectura real, consulta por intervalo temporal, reconstrucción antes/después y persistencia tras reiniciar el servidor |
-| **Gemini API** | **verificado** | Modelo `gemini-3.5-flash-lite`, salida estructurada real, interpretación del aviso (con cita literal del mensaje) y del aviso ambiguo (pide aclaración), y composición validada en las tres situaciones |
-
-### Sobre el modelo de Gemini
-
-Los identificadores caducan: en esta cuenta `gemini-2.5-flash` y `gemini-2.5-pro`
-responden **404 «no longer available to new users»**, `gemini-pro-latest` y los
-`*-pro-preview` dan cuota agotada, y `gemini-3.8-flash`/`gemini-3.7-flash`
-devolvieron 503 por saturación. `gemini-3.5-flash-lite` respondió las cuatro
-tareas reales en 1–3,5 s y es el que quedó fijado en `GEMINI_MODEL`.
-
-Si ese identificador deja de servir, borre `GEMINI_MODEL` y ejecute
-`npm run check:providers`: la detección prueba primero una lista de preferencia
-y, si ninguno sirve, recorre los modelos que la propia cuenta declara.
-
-Sin esas credenciales la aplicación **sigue funcionando**, pero en modo explícito:
-
-- Sin `GEMINI_API_KEY`: la composición la calcula el servidor (vista básica
-  determinista) y la lectura del mensaje la hace un adaptador local de reglas.
-  La interfaz lo rotula y **nunca** lo atribuye a Gemini.
-- Sin `DATABASE_URL`: el escenario vive en la memoria del proceso y se pierde al
-  reiniciar el servidor.
-
-**La entrega no está completa mientras alguna integración obligatoria solo funcione
-con fixtures.** `npm run check:providers` sale con código 1 en ese caso.
-
----
-
-## Ejecutar en tu Mac
-
-Requiere **Node 24** (incluye `.nvmrc`). Si tu Node es anterior, puedes usar este comando sin cambiar la instalación global:
+Requiere **Node.js 24** y npm. El repositorio incluye `.nvmrc`.
 
 ```bash
-cd /Users/sebaschairez/Downloads/Prototipo
+git clone https://github.com/Sebaxg86/CapitalOneFlex.git
+cd CapitalOneFlex
+npm ci
+npm run dev
+```
+
+Abre **http://localhost:3210**. Sin credenciales puedes probar el motor, la captura guiada y las vistas de respaldo con datos ficticios. Los datos se conservan solo mientras el servidor siga activo.
+
+Si tu Node es anterior, puedes ejecutar los comandos con Node 24 sin cambiar la instalación global:
+
+```bash
+npm exec --yes --package=node@24 -- npm ci
 npm exec --yes --package=node@24 -- npm run dev
 ```
 
-Abrir http://localhost:3210. Detener con Ctrl+C. Para una copia nueva, instalar primero con Node 24: `npm exec --yes --package=node@24 -- npm ci`. No copiar `node_modules` entre equipos.
+## Documentación
 
-Con Node 24 ya activo, bastan `npm ci` y `npm run dev`. La configuración privada existente en `.env.local` se conserva.
+- [Manual de usuario](MANUAL_USUARIO.md): botones, ejemplos, modales, deshacer y reiniciar.
+- [Configuración](CONFIGURACION.md): credenciales de Gemini y Tiger Data, variables y comprobaciones.
+- [Arquitectura aprobada](ARQUITECTURA.md) y [proyecto](PROYECTO.md): diseño base y alcance; se conservan como especificación original. Las funciones incorporadas después se resumen aquí.
+- [Instrucciones de desarrollo](AGENTS.md) y [Claude](CLAUDE.md).
+- [Referencia visual](design/CAPITAL_ONE.md): procedencia de logo, colores y tipografía.
 
-## Rediseño móvil — septiembre 2026
+## Qué puedes hacer hoy
 
-Pantalla compacta, lenguaje sencillo y un panel abierto a la vez. El estado de caja permanece visible; Gemini decide selección/orden/énfasis de paneles. Un panel cerrado mantiene su título; abrir planes muestra costos y condiciones. Los detalles de conexiones se consultan al final. Volver reactiva también el escenario del servidor, y el historial muestra los faltantes antes/después.
+- Seleccionar factura por folio, cliente e importe; registrar retraso, adelanto de fecha o corrección. También puedes pegar un mensaje para interpretarlo.
+- Revisar **Antes / Después** antes de aplicar cualquier novedad.
+- Comparar alternativas en un modal y cerrar para decidir después. Elegir una opción solo la marca para negociar: no confirma acuerdos ni ejecuta pagos.
+- Explorar pantallas centradas en calendario, cobros, alternativas, bloqueos e historial. Gemini propone composición, énfasis y textos validados; el motor determina las cifras.
+- Descartar acciones, deshacer decisiones del historial conservando cambios independientes y recalcular la situación financiera.
+- **Reiniciar ejemplo** para volver a fechas, reserva y opciones originales. El historial anterior se conserva en almacenamiento, fuera del nuevo recorrido visible.
 
-Colores y fuente Optimist tomados del sitio de Capital One; procedencia y condiciones de distribución documentadas en `design/CAPITAL_ONE.md`. Se identifica como prototipo, no servicio oficial.
+Las decisiones se guardan como escenarios separados. Estado, resultado, eventos e idempotencia se persisten juntos; las reversiones comprueban la revisión y los cambios posteriores del mismo dato.
 
-Verificación de este rediseño usa fixtures: no vuelve a acreditar los proveedores reales descritos en la sección histórica anterior.
+## Integraciones
+
+**Gemini:** interpretación de mensajes y composición declarativa. La captura guiada no necesita interpretación de IA. Sin clave se usa un lector local limitado y una vista básica identificada como tal.
+
+**Tiger Data:** PostgreSQL y Timescale para escenarios, resultados, propuestas, caché de vistas e historial temporal. Sin conexión disponible se usa memoria local y se muestra el aviso correspondiente.
+
+Consulta el estado actual en **Datos del ejemplo y conexiones** o ejecuta `npm run check:providers`. Este último usa servicios reales y puede consumir cuota. Las comprobaciones locales de interfaz y motor no acreditan el estado actual de los proveedores; los registros anteriores de desarrollo tampoco garantizan acceso para otra cuenta.
+
+El nombre del modelo depende del acceso de la cuenta. Configura `GEMINI_MODEL` según `CONFIGURACION.md` o usa la detección implementada. Las claves nunca se incluyen en el cliente ni en Git.
 
 ## Variables de entorno
 
@@ -95,7 +88,11 @@ npm run db:seed      # siembra el negocio de la demo; idempotente
   de dejar una tabla normal disfrazada de hypertable.
 - Sin `DATABASE_URL`, ambos scripts avisan y salen con código 0 sin hacer nada.
 
-### Reinicio exclusivo de los datos de la demo
+### Reiniciar el recorrido
+
+Para repetir la demostración, usa **Reiniciar ejemplo** en la cabecera. No necesitas borrar la base de datos.
+
+### Limpieza de datos para desarrollo
 
 ```bash
 npm run db:seed -- --reset-demo
@@ -122,7 +119,7 @@ npm run start      # también en http://localhost:3210
 ## Pruebas
 
 ```bash
-npm test              # 157 pruebas de dominio, contratos y recorrido (Vitest)
+npm test              # pruebas de dominio, contratos y recorrido (Vitest)
 npm run test:e2e      # recorrido de interfaz con Playwright (build propio en :3211)
 npm run typecheck     # tsc --noEmit
 ```
@@ -142,7 +139,7 @@ npm run check:providers     # verifica Gemini y Tiger Data REALES; sale con 1 si
 npm run demo:walkthrough    # recorre las tres situaciones por la API contra el servidor local
 ```
 
-`demo:walkthrough` requiere un servidor recién arrancado (parte de la semana inicial).
+`demo:walkthrough` modifica el ejemplo. Usa primero **Reiniciar ejemplo** para partir de la semana inicial.
 
 ---
 
@@ -193,7 +190,7 @@ src/server/db/              pool, migraciones, repositorios y consultas temporal
 src/server/store/           almacén: Tiger Data o memoria del proceso
 src/components/workspace/   cascarón estable y renderer
 src/components/blocks/      los seis componentes
-src/lib/texts.ts            todos los textos visibles, centralizados
+src/lib/texts.ts            textos compartidos de la interfaz
 fixtures/                   negocio sintético y oráculo numérico
 scripts/                    migración, seed, verificación y recorrido
 tests/                      pruebas de dominio y contratos (Vitest)
@@ -206,10 +203,10 @@ Un negocio, MXN, siete días, diez obligaciones. Acciones discretas: aplazar un 
 dividir un pago o adelantar un cobro con descuento, solo si sus condiciones están
 registradas.
 
-**No incluye** (y no debe añadirse): banca o Nessie, crédito nuevo, pagos reales,
+**No implementado:** banca o Nessie, crédito nuevo, pagos reales,
 negociación automática, WhatsApp, voz, múltiples negocios, modelos predictivos,
 probabilidades de cobro inventadas, pantallas con código arbitrario ni una red de agentes.
 
 ### Verificación del rediseño
 
-TypeScript y 157 pruebas unitarias correctas. Build y recorrido Playwright correctos en móvil 390×844 y revisión de desbordamiento a 1440 px: ambigüedad sin mutación, confirmación, condiciones, rechazo, Volver sincronizado, sin solución e historial antes/después. Capturas revisadas visualmente. Esta ronda no ejecutó llamadas reales de Gemini ni modificó Tiger Data; las pruebas usan memoria y composición local explícitas.
+Verificación local del 13/09/2026: TypeScript y 167 pruebas correctas. Build y recorrido Playwright correctos en móvil 390×844 y revisión de desbordamiento a 1440 px: ambigüedad sin mutación, confirmación, condiciones, rechazo, deshacer selectivo, reinicio, captura guiada, modal de alternativas, sin solución e historial antes/después. Capturas revisadas visualmente. Esta ronda no ejecutó llamadas reales de Gemini ni modificó Tiger Data; las pruebas usan memoria y composición local explícitas.

@@ -62,7 +62,22 @@ export class RevisionConflict extends Error {
   }
 }
 
+export interface MutationCommit {
+  expectedScenarioId: string;
+  expectedRevision: number;
+  key: string;
+  operation: string;
+  reference: string;
+  record: ScenarioRecord;
+  result: EngineResult;
+  events: Omit<EventRecord, 'eventId' | 'recordedAt'>[];
+  proposalId?: string;
+}
+
 export interface Store {
+  getOperationRef(key: string): Promise<string | null>;
+  commitMutation(mutation: MutationCommit): Promise<boolean>;
+
   readonly kind: 'tiger-data' | 'memoria-local';
   /** Descripcion honesta del almacen para la interfaz. */
   describe(): string;

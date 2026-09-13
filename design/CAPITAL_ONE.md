@@ -10,6 +10,10 @@ Familia observada: Optimist. Archivos regulares 400 y semibold 600 obtenidos del
 https://www.capitalone.com/assets/enterprise/fonts/Optimist_W_Rg.woff2
 https://www.capitalone.com/assets/enterprise/fonts/Optimist_W_SBd.woff2
 
-Estos archivos no tienen una licencia abierta incluida en el repositorio. Uso de referencia en prototipo local solicitado; confirmar permiso de distribución antes de publicar el producto. No se añade logo oficial ni se afirma afiliación bancaria.
+Estos archivos no tienen una licencia abierta incluida en el repositorio. Uso de referencia en prototipo local solicitado; confirmar permiso de distribución antes de publicar el producto. La demo no afirma afiliación ni aprobación bancaria; el logo incorporado se documenta abajo.
 
-Experiencia: cabecera compacta, estado financiero siempre visible, entrada breve y un componente abierto a la vez. El agente sigue seleccionando/ordenando y dando énfasis; todos los paneles elegidos quedan disponibles. Dentro de una opción, condiciones y costo permanecen juntos. Datos de ejemplo, conexiones y diagnósticos quedan bajo demanda.
+Experiencia: cabecera compacta, estado financiero siempre visible, entrada breve y un componente protagonista y módulos secundarios. El agente sigue seleccionando/ordenando y dando énfasis; todos los paneles elegidos quedan disponibles. Dentro de una opción, condiciones y costo permanecen juntos. Datos de ejemplo, conexiones y diagnósticos quedan bajo demanda.
+
+## Logo y nombre del prototipo
+
+Nombre visible: Capital One Flex. Logo SVG original extraído del encabezado de https://www.capitalone.com/ el 13 de septiembre de 2026; archivo local `public/brand/capital-one.svg`. Se conserva el dibujo y sus colores sobre fondo blanco. El prototipo conserva su identificación como demo de hackatón.

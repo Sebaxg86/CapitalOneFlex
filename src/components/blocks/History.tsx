@@ -1,4 +1,4 @@
-import type { BeforeAfter } from '@/lib/contracts';
+import type { BeforeAfter, HistoryUndo } from '@/lib/contracts';
 import { formatCents } from '@/domain/money';
 import type { EngineResult } from '@/domain/types';
 import type { ViewSpecSection } from '@/server/ai/viewspec';
@@ -34,6 +34,7 @@ export interface HistoryEntry {
   label: string;
   detail?: string;
   kind?: string;
+  undo?: HistoryUndo;
 }
 
 export interface HistoryProps {
@@ -42,6 +43,8 @@ export interface HistoryProps {
   parte: 'sintesis' | 'detalle';
   entries?: HistoryEntry[];
   beforeAfter?: BeforeAfter[];
+  onUndo?: (eventId: string) => void;
+  busy?: boolean;
 }
 
 type Categoria = keyof typeof TEXTS.historial.tipos;
@@ -172,7 +175,7 @@ function Tabla({ filas }: { filas: Fila[] }) {
   );
 }
 
-export default function History({ entries, parte, beforeAfter }: HistoryProps) {
+export default function History({ entries, parte, beforeAfter, onUndo, busy }: HistoryProps) {
   const filas = construirFilas(entries ?? []);
 
   if (filas.length === 0) {
@@ -183,7 +186,6 @@ export default function History({ entries, parte, beforeAfter }: HistoryProps) {
     );
   }
 
-  const ultima = filas[0];
   const comparison = beforeAfter?.filter(x=>x.beforeShortfallCents !== null && x.afterShortfallCents !== null).at(-1);
 
   if (parte === 'sintesis') {
@@ -193,28 +195,16 @@ export default function History({ entries, parte, beforeAfter }: HistoryProps) {
           <div><p className="text-sm">Antes faltaban</p><p className="text-xl cifra font-semibold">{formatCents(comparison.beforeShortfallCents!)}</p></div>
           <div><p className="text-sm">Después faltan</p><p className="text-xl cifra font-semibold">{formatCents(comparison.afterShortfallCents!)}</p></div>
         </div>}
-        {/*
-          La etiqueta ya nombra el tipo de evento: repetir `entry.label` al lado
-          lo imprimía dos veces seguidas. Aquí va la etiqueta y el detalle.
-        */}
-        <p className="flex flex-wrap items-baseline gap-x-2 text-cuerpo-sm">
-          <Etiqueta categoria={ultima.categoria} />
-          {ultima.entry.detail ? (
-            <span className="text-tinta">{ultima.entry.detail}</span>
-          ) : (
-            <span className="font-semibold text-tinta">{ultima.entry.label}</span>
-          )}
-        </p>
-        <p className="text-pie text-tinta-tenue">
-          <span className="cifra">{formatSello(ultima.entry.recordedAt)}</span>
-          {' · '}
-          <span className="cifra">
-            {ultima.antes} → {TEXTS.historial.revisionPrefijo} {ultima.entry.revision}
-          </span>
-          {' · '}
-          <span className="cifra font-semibold text-tinta-suave">{filas.length}</span>{' '}
-          {TEXTS.historial.eventosContador}
-        </p>
+        <ul className="space-y-3 pt-3">
+          {filas.filter(fila=>fila.entry.undo).map(({entry}) => <li key={entry.id} data-history-action={entry.id} className="rounded-xl border border-borde bg-superficie p-4">
+            <p className="text-sm font-semibold text-tinta">{entry.detail || entry.label}</p>
+            <p className="mt-1 text-xs text-tinta-tenue">{formatSello(entry.recordedAt)}</p>
+            <button type="button" className="boton-secundario mt-3" disabled={busy || !entry.undo?.available} onClick={()=>onUndo?.(entry.id)}>Deshacer esta acción</button>
+            {entry.undo?.reason && <p className="mt-2 text-sm text-tinta-suave">{entry.undo.reason}</p>}
+          </li>)}
+        </ul>
+        {filas.every(fila=>!fila.entry.undo) && <p className="text-sm text-tinta-suave">Todavía no hay decisiones que deshacer.</p>}
+
       </div>
     );
   }

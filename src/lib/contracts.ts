@@ -62,6 +62,7 @@ export interface ProposalChange {
   evidence: string;
   /** Diff legible calculado por el servidor, no por el modelo. */
   humanDiff: string;
+  comparison?: { subject: string; before: string; after: string; note: string };
 }
 
 export interface PendingProposal {
@@ -72,7 +73,7 @@ export interface PendingProposal {
   summary: string;
   source: 'gemini' | 'manual';
   /** De donde salio la lectura del mensaje. Se rotula en la interfaz. */
-  adapter?: 'gemini' | 'reglas-locales';
+  adapter?: 'gemini' | 'reglas-locales' | 'formulario';
 }
 
 export type InterpretResponse =
@@ -108,6 +109,11 @@ export interface MutationResponse {
 /** Naturaleza del evento. Distingue expectativa de dinero realmente movido. */
 export type HistoryKind = 'expectativa' | 'liquidado' | 'restriccion' | 'resultado' | 'escenario';
 
+export interface HistoryUndo {
+  available: boolean;
+  reason?: string;
+}
+
 export interface HistoryEntry {
   id: string;
   recordedAt: string;
@@ -118,6 +124,7 @@ export interface HistoryEntry {
   kind: HistoryKind;
   label: string;
   detail: string;
+  undo?: HistoryUndo;
 }
 
 export interface BeforeAfter {

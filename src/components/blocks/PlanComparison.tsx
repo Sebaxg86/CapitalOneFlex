@@ -36,6 +36,8 @@ export interface PlanComparisonProps {
   /** Acción cuyo rechazo está en vuelo. */
   rejectingOptionId?: string | null;
   busy?: boolean;
+  onSelect?: (planId: string) => void;
+  selectedPlanId?: string | null;
 }
 
 /** Tailwind necesita las clases completas: el motor nunca devuelve más de tres. */
@@ -55,11 +57,15 @@ function PlanSintesis({
   onReject,
   rejectingOptionId,
   busy,
+  onSelect,
+  selectedPlanId,
 }: {
   plan: Plan;
   onReject?: (optionId: string) => void;
   rejectingOptionId?: string | null;
   busy?: boolean;
+  onSelect?: (planId: string) => void;
+  selectedPlanId?: string | null;
 }) {
   // Un mismo plan puede tocar varias obligaciones: un botón por acción distinta.
   const opciones = plan.actions.filter(
@@ -74,7 +80,12 @@ function PlanSintesis({
       }`}
     >
       {/* 1. La descripción del plan aparece UNA sola vez, como título. */}
-      <h3 className="text-cuerpo font-semibold text-tinta">{plan.actions.map(a => ({defer:'Pagar más tarde',split:'Pagar en dos partes',advance_receivable:'Cobrar antes'}[a.kind])).filter((v,i,a)=>a.indexOf(v)===i).join(' + ')}</h3>
+      <div><h3 className="text-cuerpo font-semibold text-tinta">{plan.actions.map(a => ({defer:'Pagar más tarde',split:'Pagar en dos partes',advance_receivable:'Cobrar antes'}[a.kind])).filter((v,i,a)=>a.indexOf(v)===i).join(' + ')}</h3>
+      <ul className="mt-2 space-y-2 text-sm text-tinta">
+        {opciones.map(action => <li key={action.optionId}>
+          <span className="font-semibold">{action.counterparty}: </span>{action.description}
+        </li>)}
+      </ul></div>
 
       {/* 2. Cifras comparables entre columnas. */}
       <dl className="grid grid-cols-2 gap-x-3">
@@ -128,6 +139,8 @@ function PlanSintesis({
        * explica el texto de ayuda, no un botón convertido en párrafo.
        */}
       <div>
+        {onSelect && <button type="button" className="boton-principal mb-3 w-full" disabled={busy} onClick={()=>onSelect(plan.id)}>{selectedPlanId === plan.id ? 'Opción elegida para negociar' : 'Quiero intentar esta opción'}</button>}
+        {selectedPlanId === plan.id && <p className="mb-3 text-sm text-tinta-suave">Pendiente de acuerdo. Tus pagos todavía no cambian.</p>}
         {onReject ? (
           <>
             <div className="flex flex-wrap gap-2">
@@ -199,6 +212,8 @@ export default function PlanComparison({
   onReject,
   rejectingOptionId,
   busy,
+  onSelect,
+  selectedPlanId,
 }: PlanComparisonProps) {
   if (result.plans.length === 0) return null;
 
@@ -215,6 +230,8 @@ export default function PlanComparison({
   }
 
   return (
+    <div>
+      <p className="mb-3 text-sm text-tinta-suave">{TEXTS.planes.beneficio}</p>
     <ul className={`grid gap-x-4 gap-y-4 ${columnas} ${FILAS_SINTESIS}`}>
       {result.plans.map((plan) => (
         <PlanSintesis
@@ -223,8 +240,11 @@ export default function PlanComparison({
           onReject={onReject}
           rejectingOptionId={rejectingOptionId}
           busy={busy}
+          onSelect={onSelect}
+          selectedPlanId={selectedPlanId}
         />
       ))}
     </ul>
+    </div>
   );
 }

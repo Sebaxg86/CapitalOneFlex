@@ -73,7 +73,7 @@ export function validateInterpretation(
   scenario: ScenarioInput,
   message: string,
   source: 'gemini' | 'manual',
-  adapter: 'gemini' | 'reglas-locales',
+  adapter: 'gemini' | 'reglas-locales' | 'formulario',
 ): InterpretationOutcome {
   const parsed = rawInterpretSchema.safeParse(raw);
   if (!parsed.success) {
@@ -150,6 +150,7 @@ export function validateInterpretation(
       };
       validated.push({
         operation,
+        comparison: { subject: ob.concept + ' · ' + ob.counterparty + ' · ' + formatCents(ob.amountCents), before: formatEconomicDate(ob.date), after: formatEconomicDate(change.newDate), note: 'Cambia la fecha esperada. El dinero todavía no se ha recibido.' },
         evidence: change.evidence.trim(),
         humanDiff:
           ob.concept +
@@ -180,6 +181,7 @@ export function validateInterpretation(
       }
       validated.push({
         operation: { op: 'exclude_action', optionId: option.id },
+        comparison: { subject: option.label, before: 'Disponible para comparar', after: 'Descartada', note: 'Esta opción deja de considerarse. No se cancela ningún pago.' },
         evidence: change.evidence.trim(),
         humanDiff:
           'Se descarta la acción "' +
@@ -217,6 +219,7 @@ export function validateInterpretation(
     }
     validated.push({
       operation: { op: 'set_minimum_cash', amountCents },
+      comparison: { subject: 'Dinero de reserva', before: formatCents(scenario.minimumCashCents), after: formatCents(amountCents), note: 'Buscaremos opciones que conserven esta reserva.' },
       evidence: change.evidence.trim(),
       humanDiff:
         'La caja mínima pasa de ' +
