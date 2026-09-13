@@ -209,4 +209,4 @@ probabilidades de cobro inventadas, pantallas con código arbitrario ni una red 
 
 ### Verificación del rediseño
 
-Verificación local del 13/09/2026: TypeScript y 167 pruebas correctas. Build y recorrido Playwright correctos en móvil 390×844 y revisión de desbordamiento a 1440 px: ambigüedad sin mutación, confirmación, condiciones, rechazo, deshacer selectivo, reinicio, captura guiada, modal de alternativas, sin solución e historial antes/después. Capturas revisadas visualmente. Esta ronda no ejecutó llamadas reales de Gemini ni modificó Tiger Data; las pruebas usan memoria y composición local explícitas.
+Verificación local del 13/09/2026: TypeScript y 167 pruebas correctas. Build y recorrido Playwright correctos en móvil 390×844 y revisión de desbordamiento a 1440 px: ambigüedad sin mutación, confirmación, condiciones, rechazo, deshacer selectivo, reinicio, captura guiada, modal de alternativas, sin solución e historial antes/después. Capturas revisadas visualmente.
